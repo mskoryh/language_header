@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Language Cookie admin settings form.
+ * Language header admin settings form.
  */
 
 /**

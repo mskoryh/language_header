@@ -1,7 +1,7 @@
 core = "7.x"
 dependencies[] = "locale"
 description = "Use custom HTTP header for selecting content language"
-name = "Language Header"
+name = "Language HTTP Header"
 package = "Multilingual - Internationalization"
 project = "language_header"
 configure = "admin/config/regional/language/configure/header"
