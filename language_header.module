@@ -1,0 +1,131 @@
+<?php
+/**
+ * @file
+ * Language header module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function language_header_menu() {
+  $items = array();
+
+  $items['admin/config/regional/language/configure/header'] = array(
+    'title' => 'Configure HTTP header language negotiation',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('language_header_admin_form'),
+    'access arguments' => array('administer languages'),
+    'file' => 'language_header.admin.inc',
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_language_negotiation_info().
+ */
+function language_header_language_negotiation_info() {
+  return array(
+    'language_header' => array(
+      'types' => array(
+        LANGUAGE_TYPE_CONTENT,
+        LANGUAGE_TYPE_INTERFACE,
+        LANGUAGE_TYPE_URL,
+      ),
+      'callbacks' => array(
+        'language' => 'language_header_language',
+      ),
+      'file' => drupal_get_path('module', 'language_header') . '/language_header.module',
+      'weight' => -5,
+      'name' => t('HTTP header'),
+      'description' => t('Determine the language from HTTP header'),
+      'config' => 'admin/config/regional/language/configure/header',
+    ),
+  );
+}
+
+/**
+ * Alters hook_language_types_info().
+ *
+ * For determining the URL language (LANGUAGE_TYPE_URL / $language_url global),
+ * the cookie language provider should take precedence over the URL fallback
+ * provider.
+ *
+ * The first provider (LOCALE_LANGUAGE_NEGOTIATION_URL) attempts to get the
+ * language to use for links in the page from the path prefix or the domain.
+ * If no language is found there, instead of falling back to the
+ * LOCALE_LANGUAGE_NEGOTIATION_URL_FALLBACK provider (which would return the
+ * site default language), we attempt to get the language from the cookie first.
+ *
+ * See locale_language_types_info() and https://drupal.org/node/1497272.
+ */
+function language_header_language_types_info_alter(&$language_types) {
+  require_once DRUPAL_ROOT . '/includes/locale.inc';
+  $language_types[LANGUAGE_TYPE_URL]['fixed'] = array(
+    LOCALE_LANGUAGE_NEGOTIATION_URL,
+    language_header_NEGOTIATION,
+    LOCALE_LANGUAGE_NEGOTIATION_URL_FALLBACK,
+  );
+}
+
+/**
+ * Set cookie for current language.
+ * If no parameter is passed the current language is used.
+ *
+ * @param string $lang
+ */
+function language_header_set($lang = NULL) {
+  if (!$lang) {
+    global $language;
+    $lang = $language->language;
+  }
+
+  $cookie = new stdClass;
+  $cookie->name = variable_get('language_header_param', 'language');
+  $cookie->value = $lang;
+  $cookie->expire =  variable_get('language_header_time', 31536000);
+  $cookie->path = variable_get('language_header_path', '/');
+  $cookie->domain = variable_get('language_header_domain', '');
+  $cookie->secure = FALSE;
+  $cookie->httponly = FALSE;
+
+  // Allow other modules to alter the cookie. Include bootstrap modules
+  // only as this is being called during hook_boot().
+  // @see bootstrap_invoke_all()
+  foreach (module_list(FALSE, TRUE) as $module) {
+    drupal_load('module', $module);
+    // Note: this will be executed during hook_boot(), so be careful not
+    // to use module_implements() directly or indirectly during
+    // hook_language_header_alter().
+    module_invoke($module, 'language_header_alter', $cookie);
+  }
+
+  setrawcookie(
+    $cookie->name,
+    rawurlencode($cookie->value),
+    REQUEST_TIME + $cookie->expire,
+    $cookie->path,
+    $cookie->domain,
+    $cookie->secure,
+    $cookie->httponly
+  );
+}
+
+/**
+ * Identify language from a custom HTTP header.
+ *
+ * @param $languages
+ *   An array of valid language objects.
+ *
+ * @return
+ *   A valid language code on success, FALSE otherwise.
+ */
+function language_header_language($languages) {
+  $header_name = variable_get('language_header_header', 'X-Accept-Language');
+  $lang_request = drupal_get_http_header($header_name);
+  if ($lang_request && array_key_exists($lang_request, $languages)) {
+    return $lang_request;
+  }
+  return FALSE;
+}

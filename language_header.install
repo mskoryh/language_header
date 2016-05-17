@@ -1,0 +1,12 @@
+<?php
+/**
+ * @file
+ *   Language header schema-related hooks.
+ */
+
+/**
+ * Implements hook_uninstall.
+ */
+function languge_header_uninstall() {
+  variable_del('language_header_header');
+}
