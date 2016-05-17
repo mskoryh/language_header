@@ -56,7 +56,11 @@ function language_header_language_negotiation_info() {
  */
 function language_header_language($languages) {
   $header_name = variable_get('language_header_header', 'X-Accept-Language');
-  $lang_request = drupal_get_http_header($header_name);
+  $header_name = 'HTTP_' . preg_replace('/-/', '_', strtoupper($header_name));
+  if (!array_key_exists($header_name, $_SERVER)) {
+    return FALSE;
+  }
+  $lang_request = $_SERVER[$header_name];
   if ($lang_request && array_key_exists($lang_request, $languages)) {
     return $lang_request;
   }
