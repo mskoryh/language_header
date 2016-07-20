@@ -28,11 +28,7 @@ function language_header_menu() {
 function language_header_language_negotiation_info() {
   return array(
     'language_header' => array(
-      'types' => array(
-        LANGUAGE_TYPE_CONTENT,
-        LANGUAGE_TYPE_INTERFACE,
-        LANGUAGE_TYPE_URL,
-      ),
+      'types' => drupal_language_types(),
       'callbacks' => array(
         'language' => 'language_header_language',
       ),

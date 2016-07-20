@@ -1,7 +1,10 @@
-core = "7.x"
-dependencies[] = "locale"
-description = "Use custom HTTP header for selecting content language"
-name = "Language HTTP Header"
-package = "Multilingual - Internationalization"
-project = "language_header"
-configure = "admin/config/regional/language/configure/header"
+name = Language HTTP Header
+description = Use custom HTTP header for selecting content language
+package = Multilingual - Internationalization
+core = 7.x
+
+configure = admin/config/regional/language/configure/header
+
+files[] = tests/language_header.test
+
+dependencies[] = locale

@@ -1,0 +1,97 @@
+<?php
+/**
+ * @file
+ * Language header (Test).
+ */
+
+/**
+ * Class LanguageHeaderTestCase.
+ */
+class LanguageHeaderTestCase extends \DrupalWebTestCase {
+
+  /**
+   * Test module.
+   */
+  const MODULE = 'language_header';
+  /**
+   * Test language.
+   */
+  const LANGUAGE = 'de';
+
+  /**
+   * User account.
+   *
+   * @var \stdClass
+   */
+  private $user;
+  /**
+   * Path of configuration form.
+   *
+   * @var string
+   */
+  private $path = '';
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Language HTTP Header'),
+      'group' => t('Multilingual - Internationalization'),
+      'description' => t('Testing functionality of language header.'),
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    parent::setUp(self::MODULE);
+
+    $routes = language_header_menu();
+
+    $this->path = key($routes);
+    $this->user = $this->drupalCreateUser($routes[$this->path]['access arguments']);
+  }
+
+  /**
+   * Test definition of the language provider.
+   */
+  public function testProviderDefinition() {
+    $providers = language_negotiation_info();
+
+    if (isset($providers['language_header'])) {
+      $this->assertTrue(array_map('function_exists', $providers['language_header']['callbacks']));
+    }
+    else {
+      $this->fail(t('Provider "@provider" is not defined!', [
+        '@provider' => 'language_header',
+      ]));
+    }
+  }
+
+  /**
+   * Test configuration form of language provider.
+   */
+  public function testConfigurationForm() {
+    $this->drupalLogin($this->user);
+    $this->drupalGet($this->path);
+    $this->assertResponse(200);
+    $this->assertFieldByName('language_header_header', 'X-Accept-Language');
+    $this->drupalPost($this->path, array('language_header_header' => 'Test'), t('Save configuration'));
+    $this->assertFieldByName('language_header_header', 'Test');
+  }
+
+  /**
+   * Simulate HTTP header and test language detection.
+   */
+  public function testLanguageDetection() {
+    // Simulate HTTP header.
+    $_SERVER['HTTP_X_ACCEPT_LANGUAGE'] = self::LANGUAGE;
+    // Activate a language.
+    locale_add_language(self::LANGUAGE);
+    // Check that language has been correctly recognized.
+    $this->assertTrue(self::LANGUAGE === language_provider_invoke('language_header')->language);
+  }
+
+}
