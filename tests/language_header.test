@@ -64,9 +64,9 @@ class LanguageHeaderTestCase extends \DrupalWebTestCase {
       $this->assertTrue(array_map('function_exists', $providers['language_header']['callbacks']));
     }
     else {
-      $this->fail(t('Provider "@provider" is not defined!', [
+      $this->fail(t('Provider "@provider" is not defined!', array(
         '@provider' => 'language_header',
-      ]));
+      )));
     }
   }
 
