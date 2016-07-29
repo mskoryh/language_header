@@ -5,23 +5,23 @@
  */
 
 define('LANGUAGE_HEADER_HEADER', 'X-Accept-Language');
+define('LANGUAGE_HEADER_PROVIDER', 'language_header');
+define('LANGUAGE_HEADER_CONFIG_PATH', 'admin/config/regional/language/configure/header');
 
 /**
  * Implements hook_menu().
  */
 function language_header_menu() {
-  $items = array();
-
-  $items['admin/config/regional/language/configure/header'] = array(
-    'title' => 'Configure HTTP header language negotiation',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('language_header_admin_form'),
-    'access arguments' => array('administer languages'),
-    'file' => 'language_header.admin.inc',
-    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+  return array(
+    LANGUAGE_HEADER_CONFIG_PATH => array(
+      'type' => MENU_VISIBLE_IN_BREADCRUMB,
+      'file' => 'language_header.admin.inc',
+      'title' => 'Configure HTTP header language negotiation',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('language_header_admin_form'),
+      'access arguments' => array('administer languages'),
+    ),
   );
-
-  return $items;
 }
 
 /**
@@ -29,15 +29,14 @@ function language_header_menu() {
  */
 function language_header_language_negotiation_info() {
   return array(
-    'language_header' => array(
-      'types' => drupal_language_types(),
+    LANGUAGE_HEADER_PROVIDER => array(
+      'name' => t('HTTP header'),
+      'weight' => -5,
+      'config' => LANGUAGE_HEADER_CONFIG_PATH,
+      'description' => t('Determine the language from HTTP header'),
       'callbacks' => array(
         'language' => 'language_header_language',
       ),
-      'weight' => -5,
-      'name' => t('HTTP header'),
-      'description' => t('Determine the language from HTTP header'),
-      'config' => 'admin/config/regional/language/configure/header',
     ),
   );
 }
@@ -57,9 +56,19 @@ function language_header_language_negotiation_info() {
  *   language providers to determine the language code.
  */
 function language_header_language(array $languages) {
-  $header = 'HTTP_' . str_replace('-', '_', strtoupper(
-    variable_get('language_header_header', LANGUAGE_HEADER_HEADER)));
+  $header = language_header_name();
 
-  return isset($_SERVER[$header], $languages[$_SERVER[$header]])
-    ? $_SERVER[$header] : FALSE;
+  return isset($_SERVER[$header], $languages[$_SERVER[$header]]) ? $_SERVER[$header] : FALSE;
+}
+
+/**
+ * Returns the name of HTTP header where the language code should be set.
+ *
+ * @return string
+ *   Name of HTTP header.
+ */
+function language_header_name() {
+  return 'HTTP_' . str_replace('-', '_', strtoupper(
+    variable_get('language_header_header', LANGUAGE_HEADER_HEADER)
+  ));
 }

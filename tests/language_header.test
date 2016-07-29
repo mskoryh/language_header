@@ -10,28 +10,6 @@
 class LanguageHeaderTestCase extends \DrupalWebTestCase {
 
   /**
-   * Test module.
-   */
-  const MODULE = 'language_header';
-  /**
-   * Test language.
-   */
-  const LANGUAGE = 'de';
-
-  /**
-   * User account.
-   *
-   * @var \stdClass
-   */
-  private $user;
-  /**
-   * Path of configuration form.
-   *
-   * @var string
-   */
-  private $path = '';
-
-  /**
    * {@inheritdoc}
    */
   public static function getInfo() {
@@ -46,52 +24,38 @@ class LanguageHeaderTestCase extends \DrupalWebTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
-    parent::setUp(self::MODULE);
-
-    $routes = language_header_menu();
-
-    $this->path = key($routes);
-    $this->user = $this->drupalCreateUser($routes[$this->path]['access arguments']);
+    // Enable the module for testing.
+    parent::setUp('language_header');
   }
 
   /**
-   * Test definition of the language provider.
-   */
-  public function testProviderDefinition() {
-    $providers = language_negotiation_info();
-
-    if (isset($providers['language_header'])) {
-      $this->assertTrue(array_map('function_exists', $providers['language_header']['callbacks']));
-    }
-    else {
-      $this->fail(t('Provider "@provider" is not defined!', array(
-        '@provider' => 'language_header',
-      )));
-    }
-  }
-
-  /**
-   * Test configuration form of language provider.
+   * Test configuration form of "language_header" provider.
    */
   public function testConfigurationForm() {
-    $this->drupalLogin($this->user);
-    $this->drupalGet($this->path);
+    $routes = language_header_menu();
+
+    $this->drupalLogin($this->drupalCreateUser($routes[LANGUAGE_HEADER_CONFIG_PATH]['access arguments']));
+    $this->drupalGet(LANGUAGE_HEADER_CONFIG_PATH);
     $this->assertResponse(200);
-    $this->assertFieldByName('language_header_header', 'X-Accept-Language');
-    $this->drupalPost($this->path, array('language_header_header' => 'Test'), t('Save configuration'));
+    // @see language_header_admin_form()
+    $this->assertFieldByName('language_header_header', variable_get('language_header_header', LANGUAGE_HEADER_HEADER));
+    $this->drupalPost(LANGUAGE_HEADER_CONFIG_PATH, array('language_header_header' => 'Test'), t('Save configuration'));
     $this->assertFieldByName('language_header_header', 'Test');
   }
 
   /**
    * Simulate HTTP header and test language detection.
+   *
+   * @param string $langcode
+   *   Valid language code for testing.
    */
-  public function testLanguageDetection() {
+  public function testLanguageDetection($langcode = 'de') {
     // Simulate HTTP header.
-    $_SERVER['HTTP_X_ACCEPT_LANGUAGE'] = self::LANGUAGE;
+    $_SERVER[language_header_name()] = $langcode;
     // Activate a language.
-    locale_add_language(self::LANGUAGE);
+    locale_add_language($langcode);
     // Check that language has been correctly recognized.
-    $this->assertTrue(self::LANGUAGE === language_provider_invoke('language_header')->language);
+    $this->assertIdentical($langcode, language_provider_invoke(LANGUAGE_HEADER_PROVIDER)->language);
   }
 
 }
