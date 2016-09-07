@@ -33,6 +33,7 @@ function language_header_language_negotiation_info() {
       'name' => t('HTTP header'),
       'weight' => -5,
       'config' => LANGUAGE_HEADER_CONFIG_PATH,
+      'file' => drupal_get_path('module', 'language_header') . '/language_header.module',
       'description' => t('Determine the language from HTTP header'),
       'callbacks' => array(
         'language' => 'language_header_language',
