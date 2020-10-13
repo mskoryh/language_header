@@ -1,0 +1,9 @@
+language_header.mappings:
+  type: config_object
+  label: 'Language header mapping'
+  mapping:
+    map:
+      type: sequence
+      sequence:
+        type: string
+        label: 'Language'

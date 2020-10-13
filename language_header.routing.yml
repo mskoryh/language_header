@@ -1,0 +1,7 @@
+language_header.settings:
+  path: '/admin/config/regional/language/detection/header'
+  defaults:
+    _form: '\Drupal\language_header\Form\NegotiationHeaderForm'
+    _title: 'HTTP header language detection configuration'
+  requirements:
+    _permission: 'administer languages'

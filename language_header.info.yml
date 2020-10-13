@@ -1,0 +1,8 @@
+name: 'Language HTTP header'
+type: module
+description: 'Provides language negotiation based on HTTP headers.'
+core: 8.x
+core_version_requirement: ^8 || ^9
+package: 'Multilingual - Internationalization'
+dependencies:
+  - language
