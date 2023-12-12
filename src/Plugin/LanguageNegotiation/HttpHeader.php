@@ -41,13 +41,19 @@ class HttpHeader extends LanguageNegotiationMethodBase {
 
           if ($request->headers->get($header_name) == $header_value) {
             $langcode = $drupal_langcode;
-            \Drupal::service('page_cache_kill_switch')->trigger();
+            if (str_starts_with($request->getPathInfo(), '/jsonapi') && $request->getContentType() === 'api_json' && $request->getMethod() === 'DELETE') {
+              $langcode = $this->languageManager->getDefaultLanguage()->getId();
+            }
             break;
           }
         }
       }
     }
 
+    // Internal page cache with multiple languages and X-Language header negotiation
+    // could lead to wrong cached sites. Therefore disabling the internal page
+    // cache.
+    \Drupal::service('page_cache_kill_switch')->trigger();
     return $langcode;
   }
 
