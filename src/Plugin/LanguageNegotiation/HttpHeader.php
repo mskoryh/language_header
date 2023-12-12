@@ -41,7 +41,7 @@ class HttpHeader extends LanguageNegotiationMethodBase {
 
           if ($request->headers->get($header_name) == $header_value) {
             $langcode = $drupal_langcode;
-            if (str_starts_with($request->getPathInfo(), '/jsonapi') && $request->getContentType() === 'api_json' && $request->getMethod() === 'DELETE') {
+            if (str_starts_with($request->getPathInfo(), '/jsonapi') && $request->getContentTypeFormat() === 'api_json' && $request->getMethod() === 'DELETE') {
               $langcode = $this->languageManager->getDefaultLanguage()->getId();
             }
             break;
